@@ -1,6 +1,7 @@
 const { Plugin } = require('powercord/entities');
 const Settings = require('./component/Settings');
 const { React } = require('powercord/webpack');
+var lastKey = ''
 module.exports = class OsuTyping extends Plugin {
     startPlugin() {
         //add an audio element to the page root
@@ -11,6 +12,7 @@ module.exports = class OsuTyping extends Plugin {
         audio.volume = this.settings.get("volume", 100)/100;
         document.body.appendChild(audio);
         document.addEventListener("keydown", this.keyDown)
+        document.addEventListener("keyup", this.keyUp)
         powercord.api.settings.registerSettings(
             this.entityID,
             {
@@ -25,17 +27,58 @@ module.exports = class OsuTyping extends Plugin {
         //remove the audio element from the page root
         document.body.removeChild(document.getElementById("osutype"));
         document.removeEventListener("keydown", this.keyDown);
+        document.removeEventListener("keyup", this.keyUp);
         powercord.api.settings.unregisterSettings(this.entityID);
 
     }
     keyDown(e) {
         //seek the audio element to 0 seconds and play it
         if (validKeycodes.includes(e.keyCode)) {
-        document.getElementById("osutype").currentTime = 0;
-        document.getElementById("osutype").play();
+            const keyCode = e.keyCode
+            const value = document.activeElement.attributes.getNamedItem('role')?.value
+            const value2 = document.activeElement.tagName.toLowerCase()
+            if (value == 'textbox' || value == 'combobox' || value2 == 'input') {
+                if (nonSpamKeycodes.includes(keyCode) && keyCode == lastKey) {return}   
+                document.getElementById("osutype").currentTime = 0;
+                document.getElementById("osutype").play();
+                lastKey = keyCode
+            }
         }
     }
+    keyUp(e) {
+        lastKey = ''
+    }
 };
+
+const nonSpamKeycodes = [
+    16,
+    17, 
+    18, 
+    91, 
+    93, 
+    20, 
+    27, 
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123, 
+    45, 
+    46,
+    19, 
+    144, 
+    37,
+    38,
+    39, 
+    40
+]
 
 const validKeycodes = [
     8,
